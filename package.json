@@ -1,0 +1,23 @@
+{
+  "name": "usfm-editor-poc",
+  "version": "1.0.0",
+  "description": "A attempt to at least disprove the idea of having a web based editor with syntax highlighting and code folding running directly on top of tree-sitter AST",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "tree-sitter",
+    "USFM3",
+    "syntax-highlight",
+    "code-fold"
+  ],
+  "author": "https://github.com/kavitharaju",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "tree-sitter": "^0.21.1",
+    "tree-sitter-cli": "^0.22.6",
+    "tree-sitter-usfm3": "^3.0.0-beta.10"
+  }
+}

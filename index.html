@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USFM highlight POC</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <h1>USFM highlight POC</h1>
+  <textarea id="input" rows="10" cols="50"></textarea>
+  <br>
+  <button id="api-button">Process</button>
+  <p id="usfm-content"></p>
+
+  <script>
+    document.getElementById('api-button').addEventListener('click', async () => {
+      try {
+        const inputText = document.getElementById("input").value;
+        if (!inputText) {
+          alert('Please enter some text in the textarea.');
+          return;
+        }
+        console.log(inputText);
+        const response = await fetch('/api/highlight', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ sourceCode: inputText })
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        document.getElementById('usfm-content').innerHTML = data.message;
+      } catch (error) {
+        console.error('Error fetching the usfm html:', error);
+      }
+    });
+  </script>
+</body>
+</html>

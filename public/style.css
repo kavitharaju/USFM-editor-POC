@@ -1,0 +1,36 @@
+/* style.css */
+body {
+  font-family: 'Courier New', Courier, monospace;
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  padding: 20px;
+}
+
+.number {
+  color: blue;
+}
+
+.emun {
+  color: red;
+}
+
+.string {
+  color: green;
+}
+
+.attribute {
+  color: lightgrey;
+}
+
+.note {
+  color: yellow;
+}
+
+/* Additional styles for better readability */
+code {
+  display: block;
+  white-space: pre-wrap;
+  background: #1e1e1e;
+  padding: 10px;
+  border-radius: 5px;
+}

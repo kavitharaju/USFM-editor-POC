@@ -10,8 +10,8 @@ body {
   color: blue;
 }
 
-.emun {
-  color: red;
+.enum {
+  color: orange;
 }
 
 .string {
@@ -19,12 +19,18 @@ body {
 }
 
 .attribute {
-  color: lightgrey;
+  color: darkslategrey;
 }
 
 .note {
   color: yellow;
 }
+
+.error {
+  color: red;
+   text-decoration: underline;
+   text-decoration-color: red;
+   text-underline-offset: 0.1em;}
 
 /* Additional styles for better readability */
 code {

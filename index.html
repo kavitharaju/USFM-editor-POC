@@ -5,18 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>USFM highlight POC</title>
   <link rel="stylesheet" href="/style.css">
+  <script type="text/javascript">
+    function toggleFold(element) {
+      const content = element.querySelector('.fold-content');
+      if (content.style.display === 'none') {
+        content.style.display = 'block';
+      } else {
+        content.style.display = 'none';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.fold-content').forEach(element => {
+        element.style.display = 'none';
+      });
+    });
+  </script>
 </head>
 <body>
   <h1>USFM highlight POC</h1>
-  <textarea id="input" rows="10" cols="50"></textarea>
-  <br>
+  <!-- <textarea id="input" rows="10" cols="50"></textarea> -->
+  <div id="usfm-content" contenteditable="true">
+    \id GEN description
+    \c 1 
+    \p
+    \v 1 test text
+  </div>
+  <!-- <br> -->
   <button id="api-button">Process</button>
-  <p id="usfm-content"></p>
+  <!-- <p id="usfm-content"></p> -->
+
 
   <script>
     document.getElementById('api-button').addEventListener('click', async () => {
       try {
-        const inputText = document.getElementById("input").value;
+        let inputText = document.getElementById("usfm-content").innerHTML;
+        inputText = inputText.replace(/<\/p>/g, " \n")
+                  .replace(/<br>/g,"\n")
+                  .replace(/<p>/, "")
+                  .replace(/<\/span>/g, "")
+                  .replace(/<span[^>]*>/g, "")
+                  .replace(/<div[^>]*>\.\.\.<\/div>/g, "")
+                  .replace(/<div[^>]*>/g, "")
+                  .replace(/<\/div>/g, "");
+
         if (!inputText) {
           alert('Please enter some text in the textarea.');
           return;

@@ -13,6 +13,7 @@ const highlightQuery = `
   (chapterNumber) @number
   (verseNumber) @number
   (text) @string
+  (ERROR) @error
   [
     (customAttribute)
     (defaultAttribute)
@@ -31,9 +32,13 @@ const highlightQuery = `
   ] @attribute
   (footnote) @note
   (crossref) @note
-
-
+  (paragraph) @foldable
+  (chapter) @foldable
+  (footnote) @foldable
+  (crossref) @foldable
+  (ERROR) @foldable
 `;
+
 // const cursor = new QueryCursor();
 const highQuery = new Query(USFM3, highlightQuery);
 
@@ -46,46 +51,72 @@ function parseUSFM(sourceCode) {
 // Function to generate HTML with syntax highlighting
 function generateHTML(tree, query, code) {
   let highlights = [];
+  let foldables = [];
+  
   query.captures(tree.rootNode).forEach(match => {
-    highlights.push({
+    if (match.name === 'foldable') {
+      foldables.push({
+        start: match.node.startIndex,
+        end: match.node.endIndex
+      });
+    } else {
+      highlights.push({
         type: match.name,
         start: match.node.startIndex,
         end: match.node.endIndex
       });
+    }
   });
 
   let html = '';
   let lastIndex = 0;
+  let foldableStack = [];
 
   highlights.sort((a, b) => a.start - b.start).forEach(({ type, start, end }) => {
-    const before = code.slice(lastIndex, start);
-    const highlighted = code.slice(start, end);
+    while (foldables.length && foldables[0].start <= start) {
+      const { start: foldStart, end: foldEnd } = foldables.shift();
+      if (foldStart > lastIndex) {
+        html += code.slice(lastIndex, foldStart);
+        html += `<div class="foldable"><div class="fold-header" onclick="toggleFold(this.parentElement)">...</div><div class="fold-content">`;
+        foldableStack.push(foldEnd);
+        lastIndex = foldStart;
+      }
+    }
+
+    let before = code.slice(lastIndex, start);
+    before.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+            .replace(/\n/g, '<br>');
+  
+    let highlighted = code.slice(start, end);
+    highlighted.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+            .replace(/\n/g, '<br>');
+  
     html += before + `<span class="${type}">${highlighted}</span>`;
     lastIndex = end;
+
+    while (foldableStack.length && foldableStack[foldableStack.length - 1] <= lastIndex) {
+      html += `</div></div>`;
+      foldableStack.pop();
+    }
   });
 
   html += code.slice(lastIndex);
+
+  // Close any remaining foldables
+  while (foldableStack.length) {
+    html += `</div></div>`;
+    foldableStack.pop();
+  }
   return html;
 }
 
-// // Generate the HTML
-// const highlightedHTML = generateHTML(tree, query);
-// let fullHTML = `
-//   <!DOCTYPE html>
-//   <html lang="en">
-//   <head>
-//     <meta charset="UTF-8">
-//     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//     <title>Syntax Highlighting</title>
-//     <link rel="stylesheet" href="style.css">
-//   </head>
-//   <body>
-//     <code>${highlightedHTML}</code>
-//   </body>
-//   </html>
-// `;
-// // Save or output the HTML
-// fs.writeFileSync('highlighted.html', fullHTML);
-// console.log('Syntax highlighted HTML generated.');
 
 module.exports = { parseUSFM };

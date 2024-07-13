@@ -33,10 +33,13 @@ const highlightQuery = `
   (footnote) @note
   (crossref) @note
   (paragraph) @foldable
+  (poetry) @foldable
+  (list) @foldable
+  (table) @foldable
   (chapter) @foldable
   (footnote) @foldable
   (crossref) @foldable
-  (ERROR) @foldable
+  
 `;
 
 // const cursor = new QueryCursor();
@@ -46,6 +49,16 @@ function parseUSFM(sourceCode) {
   const tree = parser.parse(sourceCode);
   let highlightedHTML = generateHTML(tree, highQuery, sourceCode);
   return highlightedHTML
+}
+
+function replace_html_specials(string) {
+  string = string.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+            .replace(/[\n\r]/g, '<br>');
+  return string
 }
 
 // Function to generate HTML with syntax highlighting
@@ -60,11 +73,15 @@ function generateHTML(tree, query, code) {
         end: match.node.endIndex
       });
     } else {
-      highlights.push({
-        type: match.name,
-        start: match.node.startIndex,
-        end: match.node.endIndex
-      });
+      if (match.name == "error" && highlights.length && highlights.at(-1).type == "error" &&  highlights.at(-1).start <= match.node.endIndex && match.node.startIndex <= highlights.at(-1).end) {
+          return;
+      } else { 
+        highlights.push({
+          type: match.name,
+          start: match.node.startIndex,
+          end: match.node.endIndex
+        });
+      }
     }
   });
 
@@ -76,29 +93,16 @@ function generateHTML(tree, query, code) {
     while (foldables.length && foldables[0].start <= start) {
       const { start: foldStart, end: foldEnd } = foldables.shift();
       if (foldStart > lastIndex) {
-        html += code.slice(lastIndex, foldStart);
-        html += `<div class="foldable"><div class="fold-header" onclick="toggleFold(this.parentElement)">...</div><div class="fold-content">`;
-        foldableStack.push(foldEnd);
-        lastIndex = foldStart;
+        html += replace_html_specials(code.slice(lastIndex, foldStart));
       }
+      html += `<div class="foldable"><div class="fold-header" onclick="toggleFold(this.parentElement)">...</div><div class="fold-content">`;
+      foldableStack.push(foldEnd);
+      lastIndex = foldStart;
     }
 
-    let before = code.slice(lastIndex, start);
-    before.replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;')
-            .replace(/\n/g, '<br>');
-  
-    let highlighted = code.slice(start, end);
-    highlighted.replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;')
-            .replace(/\n/g, '<br>');
-  
+    let before = replace_html_specials(code.slice(lastIndex, start));
+
+    let highlighted = replace_html_specials(code.slice(start, end));
     html += before + `<span class="${type}">${highlighted}</span>`;
     lastIndex = end;
 
@@ -108,7 +112,7 @@ function generateHTML(tree, query, code) {
     }
   });
 
-  html += code.slice(lastIndex);
+  html += replace_html_specials(code.slice(lastIndex));
 
   // Close any remaining foldables
   while (foldableStack.length) {
